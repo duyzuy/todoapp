@@ -18,7 +18,7 @@ const port = 8000
 const routes = new Routes(app)
 routes.getRoute();
 // Routes(app)
-
+console.log('dong moi them)
 //running server
 app.listen(port, () => {
     console.log(`server running on port http://localhost:${port}`)
