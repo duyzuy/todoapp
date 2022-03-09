@@ -18,7 +18,7 @@ const port = 8000
 const routes = new Routes(app)
 routes.getRoute();
 
-console.log('dong nay them o visual')
+console.log('visual nha')
 // Routes(app)
 
 //running server
