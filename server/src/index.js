@@ -21,7 +21,6 @@ routes.getRoute();
 
 // Routes(app)
 
-console.log('thay doi tren hub')
 //running server
 app.listen(port, () => {
     console.log(`server running on port http://localhost:${port}`)
