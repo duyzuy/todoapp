@@ -1,4 +1,7 @@
-const pageRoute = require('./pages')
+const pageRoute = require('./page')
+const authRoute = require('./auth')
+const verified = require('./verifyToken')
+const todoRoute = require('./todo')
 
 class Routes {
 
@@ -8,6 +11,8 @@ class Routes {
     
     getRoute() {
         this.app.use('/page', pageRoute)
+        this.app.use('/api/auth', authRoute)
+        this.app.use('/api/todo', verified, todoRoute)
     }
    
 }
