@@ -1,0 +1,35 @@
+.login__page .btn, 
+.signup__page .btn{
+    width: 100%;
+    height: 50px;
+    font-size: 20px;
+}
+.login__page .form__control, 
+.signup__page .form__control{
+    width: 100%;
+    border-right-width: 1px ;
+    height: 50px;
+}
+.login__page label, 
+.signup__page label{
+    margin-bottom: 10px;
+    display: inline-block;
+
+}
+
+.signup__page, .login__page {
+    padding-bottom: 60px;
+}
+.header__page{
+    margin: 60px 0;
+}
+.header__page h1{
+    text-align: center;
+    color: #7649bc;
+    font-weight: 200;
+    font-size: 3rem;
+}
+.btn:disabled{
+    opacity: 0.5;
+    pointer-events: none;
+}
