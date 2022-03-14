@@ -25,7 +25,7 @@ const connect = async () => {
 const dbModels = () => {
     const db = {};
 
-   
+    db.Sequelize = Sequelize;
     db.Page =  require('../Models/Page')(sequelize, DataTypes)
     db.User =  require('../Models/User')(sequelize, DataTypes)
     db.Todo =  require('../Models/Todo')(sequelize, DataTypes)

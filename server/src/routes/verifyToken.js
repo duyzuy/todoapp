@@ -8,6 +8,9 @@ module.exports = (req, res, next) => {
     try{
         const verified = jwt.verify(token, process.env.SECRET_TOKEN)
         req.user = verified;
+        //check token expire
+       
+
         next()
     }catch(err){
         res.json({mess: "invalid token", status: 400})
