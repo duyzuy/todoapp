@@ -15,15 +15,15 @@ export const Pagination = ({
   
     const paginates = getArrayFromPageTotalCount();
     const pageTotal = totalPage()
-    
+  
     const newPagesPaginate = paginates.reduce((prevPage, current) => {
       
-        if(prevPage < current){
+        if(current < current){
            
         } 
         console.log(prevPage)
         return prevPage + current;
-    }, 1)
+    }, '')
     console.log(newPagesPaginate)
     const pageNum = paginates.map((paginate) => {
         return (
