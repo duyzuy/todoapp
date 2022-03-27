@@ -60,7 +60,8 @@ select:focus{
     align-items: center;
     height: 60px;
 }
-.todo__item .checkbox__group {
+.todo__item .checkbox__group, 
+.todo__item .radio__group {
     margin-right: 10px;
 }
 .todo__priority{
@@ -102,7 +103,8 @@ select:focus{
 .todo__filters h3{
     font-weight: 400;
 }
-.todo__filters .checkbox__group{
+.todo__filters .checkbox__group,
+.todo__filters .radio__group{
     margin-bottom: 10px;
 }
 .important{
@@ -239,4 +241,21 @@ select:focus{
 .todo__paginations .current span{
   border-color: #7649bc;
   color: #7649bc
+}
+.todo__paginations li.dot span{
+  border-color: transparent;
+}
+.todo__item.loading{
+    opacity: 0.5;
+    cursor: wait;
+    
+}
+.todo__item.loading input{
+  pointer-events: none;
+}
+.todo__edit__form{
+  border: 1px solid #f1f1f1;
+  width: calc(100% - 80px);
+  display: block;
+  height: 30px;
 }

@@ -1,54 +1,71 @@
 import React from 'react'
+import {usePaginations, DOTS} from './usePaginations'
 
 export const Pagination = ({
     paginationLoading, 
-    totalPage, 
     currentPage,
-    onSetCurrentpage, 
-    getArrayFromPageTotalCount, 
+    totalCount,
+    pageSize,
     onChangePage,
-    pageBound,
-    upperPageBound,
-    lowerPageBound,
+    siblingCount,
+
 }) => {
     
-  
-    const paginates = getArrayFromPageTotalCount();
-    const pageTotal = totalPage()
-  
-    const newPagesPaginate = paginates.reduce((prevPage, current) => {
-      
-        if(current < current){
-           
-        } 
-        console.log(prevPage)
-        return prevPage + current;
-    }, '')
-    console.log(newPagesPaginate)
-    const pageNum = paginates.map((paginate) => {
-        return (
-            
-                <li className={currentPage === paginate + 1 ? 'current' : ''} key={paginate}>
-                            <span onClick={() => onChangePage(paginate + 1)}>{paginate + 1}</span>
-                </li>
-        )
-    })
-  
+    const pageTotal = Math.ceil(totalCount/pageSize)
     
-  
+    const paginations = usePaginations({ 
+        pageSize,
+        totalCount,
+        siblingCount,
+        currentPage,
+    })
+   
+    const onNext = () => {
+        onChangePage(currentPage + 1)
+    }
+    const onPrev = () => {
+        onChangePage(currentPage - 1)
+    }
+    if(totalCount < pageSize){
+        return '';
+    }
     return (
         <div className={`todo__paginations ${paginationLoading == true ? 'disabled' : ''}`}>
-            <div className={`prev ${currentPage === 1 ? 'disabled' : ''}`} onClick={() => onSetCurrentpage('prev')}>Prev</div>
+            <div 
+                className={`prev ${currentPage === 1 ? 'disabled' : ''}`}
+                onClick={onPrev}
+            >
+                Trước
+            </div>
             
             <ul>
                
-                {pageNum}
-               
+                {paginations.map((pageNum, index) => {
+
+                    if(pageNum === DOTS){
+                        return <li className="paginate-item dot" key={`dot${index}`}><span>...</span></li>
+                    }
+
+                    return (
+                        <li 
+                            key={index}
+                            className={`paginate-item ${pageNum === currentPage ? 'current' : ''}`}
+                            onClick={() => onChangePage(pageNum)}
+                        >
+                            <span>{pageNum}</span>
+                        
+                        </li>
+                    )
+                })}
+            
              
             </ul>
             <div 
                 className={`next ${currentPage === pageTotal ? 'disabled' : ''}`}
-                onClick={() => onSetCurrentpage('next')}>Next</div>
+                onClick={onNext}
+               >
+                   Sau
+            </div>
         </div>
     )
     

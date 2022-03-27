@@ -6,7 +6,7 @@ import Logout from '../../features/auth/Logout'
 const Header = ({logo}) => {
     const navigate = useNavigate()
     const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
-
+    
     return (
         <header id="header" className="header">
             

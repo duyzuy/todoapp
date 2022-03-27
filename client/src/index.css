@@ -69,14 +69,16 @@ code {
 .checkbox__group{
   position: relative;
 }
-.checkbox__group label{
+.checkbox__group label, 
+.radio__group label{
   position: relative;
   padding-left: 28px;
   cursor: pointer;
   display: block;
   min-height: 22px;
 }
-.checkbox__group label::after{
+.checkbox__group label::after,
+.radio__group label::after{
   content: '';
   position: absolute;
   left: 0;
@@ -100,13 +102,31 @@ code {
   transform: rotate(45deg);
   top: 4px;
 }
+.radio__group label::after{
+  border-radius: 50%;
+}
+.radio__group label::before{
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border-width: 0;
+  background: transparent;
+  width: 14px;
+  height: 14px;
+  left: 4px;
+  top: 4px
+}
 .checkbox__group input[type='checkbox']:checked ~ label:after,
-.checkbox__group input[type='checkbox']:checked ~ label:before
+.checkbox__group input[type='checkbox']:checked ~ label:before,
+.radio__group input[type='radio']:checked ~ label:after
 {
   border-color: #7649bc !important;
 }
-
-.checkbox__group input[type='checkbox']{
+.radio__group input[type='radio']:checked ~ label:before{
+  background-color: #7649bc !important;
+}
+.checkbox__group input[type='checkbox'],
+.radio__group input[type='radio']{
   visibility: hidden;
   opacity: 0;
   pointer-events: none;

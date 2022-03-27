@@ -7,17 +7,26 @@ import {
     addNewTodo,
     statusRequest,
     selectUserId,
-    getCountTodo
+    getCountTodo,
+    // getFilter
 } from './todoSlice'
-
+import {getFilter} from './filterSlice'
+import {todoStore} from './todoReducer'
 import TodoItem from './components/TodoItem'
 import TodoFilter from './components/TodoFilter'
 import Spin from './components/Spin'
 import Pagination from './components/Pagination'
+import useFilterTodo from './components/useFilterTodos'
+
 const Todo = () => {
 
-    const todos = useSelector(selectAllTodo)
-    const status = useSelector(statusRequest)
+    let todos = useSelector(selectAllTodo)
+    const filter = useSelector(getFilter)
+    console.log(todos)
+
+    todos = useFilterTodo(todos, filter.status)
+    const fetchStatus = useSelector(statusRequest)
+    
     //get userID
     const userId =  useSelector(selectUserId)
     const numberTotalTodo = useSelector(getCountTodo)
@@ -27,45 +36,61 @@ const Todo = () => {
     const [addNewStatus, setAddNewStatus] = useState('idle')
     const [loadingAddNew, setLoadingAddNew] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [limit, setLimit] = useState(10)
+    const [limit, setLimit] = useState(5)
     const [currentPage, setCurrentPage] = useState(1)
     const [paginationLoading, setPaginationLoading] = useState(false)
-    const [pageBound, setPagebout] = useState(1)
-    const [upperPageBound, setUpperPageBound] = useState(1)
-    const [lowerPageBound, setLowerPageBound] = useState(0)
+    const [siblingCount, setSiblingCount] = useState(1)
+
    
     const dispatch = useDispatch();
     
     
-    // const todoSort = todos.sort((a,b) => {
-    //     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    // }).reverse();
-    // console.log(todoSort)
     useEffect( async () => {
-           
-            try {
-                //first Time fetching
-                if(status === 'idle'){
-                    setLoading(true)
-                    await dispatch(fetchTodos({limit: limit, page: currentPage})).unwrap()
-                }
-                //fetching when click on pagination
-                if(paginationLoading === false){
-                    setPaginationLoading(true)
-                    await dispatch(fetchTodos({limit: limit, page: currentPage})).unwrap()
-                }
-            }catch(err){
-
-            }finally{
-                setLoading(false)
-                setPaginationLoading(false)
+        try {
+            //first Time fetching
+            if(fetchStatus === 'idle'){
+                setLoading(true)
+                await dispatch(fetchTodos({
+                    limit: limit, 
+                    page: currentPage,
+                    status: filter.status,
+                    priority: filter.priority
+                })).unwrap()
             }
-        
-        
-    },[dispatch, currentPage])
+            
+        }catch(err){
+
+        }finally{
+            setLoading(false)
+            
+        }
+    },[])
 
     const canSave = todoInput !== '' && addNewStatus === 'idle';
 
+    const handleChangePage = async (pageNum) => {
+
+       
+        try{
+
+            setPaginationLoading(true)
+            await dispatch(fetchTodos(
+                {
+                    limit: limit, 
+                    page: pageNum,
+                    status: filter.status,
+                    priority: filter.priority
+                })
+            ).unwrap()
+            setCurrentPage(pageNum)
+        }catch(error){
+            console.log(error)
+        }finally{
+            setPaginationLoading(false)
+           
+        }
+       
+    }
     const handleAddTodo = async () => {
 
         if(canSave){
@@ -83,10 +108,11 @@ const Todo = () => {
                 if(response.status === 200){
                     setTodoInput('')
                     setPriority('medium')
+                    setCurrentPage(1)
                 }else{
                     return
                 }
-                console.log(response)
+          
             }catch(error){
                 console.log(error)
             }finally{
@@ -97,28 +123,6 @@ const Todo = () => {
         
     }
 
-    //paginations
-    // const totalPage = Math.ceil(total/limit)
-    const totalPage = () => {
-        return Math.ceil(numberTotalTodo/limit)
-    }
-    const handleSetCurrentPage = (action) => {
-        const pageTotal = totalPage()
-        console.log(action)
-        if(action === 'prev' && currentPage > 1){
-            setCurrentPage(currentPage => currentPage - 1)
-        }else if(action === 'next' && currentPage < pageTotal){
-         
-            setCurrentPage(currentPage => currentPage + 1)
-          
-        }
-        
-    }   
-    const getArrayFromPageTotalCount = () => {
-        const pageTotal = totalPage();
-        //return an array from a number
-        return Array.from(Array(pageTotal).keys())
-    }
     return (
         <div className="container">
             <div className="todo__app">
@@ -154,24 +158,25 @@ const Todo = () => {
                     </div>
                 </div>
                 <div className="todo__List">
-                    {loading ? <Spin /> : todos.map((todo, index) => (
-                            <TodoItem todo={todo} key={index} userId={userId} />
-                        ))
+                    {loading ? <Spin /> : todos &&  <>
+                            {todos.map( (todo, index) => (
+                                <TodoItem todo={todo} key={index} userId={userId} />
+                            ))
+                            }
+                            <Pagination 
+                                paginationLoading={paginationLoading}
+                                pageSize={limit}
+                                totalCount={numberTotalTodo}
+                                currentPage={currentPage}
+                                onChangePage={(pageNum) => handleChangePage(pageNum)}
+                                siblingCount={siblingCount}
+                            />
+                        </>
                     }
                 </div>
-                <Pagination 
-                    currentPage={currentPage}
-                    onSetCurrentpage={handleSetCurrentPage}
-                    totalPage={totalPage}
-                    getArrayFromPageTotalCount={getArrayFromPageTotalCount}
-                    onChangePage={(page) => setCurrentPage(page)}
-                    paginationLoading={paginationLoading}
-                    pageBound={pageBound}
-                    upperPageBound={upperPageBound}
-                    lowerPageBound={lowerPageBound}
-                />
+                
                 <div className="todo__Footer">
-                    <TodoFilter />
+                    <TodoFilter limit={limit} onsetCurrentPage={(val) => setCurrentPage(val)}/>
                 </div>
             </div>
             

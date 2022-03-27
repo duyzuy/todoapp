@@ -1,35 +1,40 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
-import {AuthHeader} from '../../hooks/RequireAuth'
-
+import {authHeader} from '../../hooks/RequireAuth'
+import {fetchApi} from '../../api/fetchApi'
+import {filterTodos} from './filterSlice'
 const initialState = {
     todos: [],
-    todoEdit: '',
-    filter:[],
     status: 'idle',
     total: ''
 }
 
-
-
 //fetchTodo
 export const fetchTodos = createAsyncThunk(
     'todo/fetchTodos', 
-    async ({limit = 10, page = 1}) => {
+    async ({limit = 10, page = 1, status = 'all', priority = ''}) => {
 
         try {
-            const response = await fetch(
-                `http://localhost:8000/api/todo/todoList?limit=${limit}&page=${page}`, 
+            const response = await fetchApi.get(
+                `http://localhost:8000/api/todo/todoList?limit=${limit}&page=${page}&status=${status}&priority=${priority}`,
                 {
-                    method: 'GET', 
-                    mode: 'cors',
-                    headers: {
-                        'auth-token': localStorage.getItem('token') ? localStorage.getItem('token') : ''
-                    }
+                    headers: authHeader()
                 }
             )
-            return response.json()
+            .then(rp => rp.data)
+            .then(data => {
+                return {
+                    todos: data,
+                    filter: {
+                        status: status,
+                        priority: priority
+                    }
+                }
+            })
+                
+            return response
+           
         }catch(error){
-            console.log(error)
+            return Promise.reject(error)
         }
     }
 )
@@ -39,20 +44,22 @@ export const addNewTodo = createAsyncThunk(
     'todos/addNewTodo',
     async (todo) => {
         try {
-            const response = await fetch('http://localhost:8000/api/todo/addTodo',
-                {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'auth-token': localStorage.getItem('token') ? localStorage.getItem('token') : ''
-                    },
-                    body: JSON.stringify(todo)
+
+            const response = await fetchApi.post(
+                `http://localhost:8000/api/todo/addTodo`,
+                todo,
+                {   
+                    headers: authHeader(
+                        {
+                            'Content-Type': 'application/json'
+                        }
+                    ),
+                    
                 }
             )
-            return response.json()
+            return response.data
         }catch(error){
-            console.log(error)
+            return Promise.reject(error)
         }
     }
 )
@@ -63,21 +70,93 @@ export const deleteTodo = createAsyncThunk(
     async (todo) => {
            
             try{
-                const response = await fetch('http://localhost:8000/api/todo/deleteTodo',
-                {
-                    method: 'DELETE',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'auth-token': localStorage.getItem('token') ? localStorage.getItem('token') : ''
-                    },
-                    body: JSON.stringify(todo)
-                })
-                return response.json()
-
+                const response = await fetchApi.delete(
+                    'http://localhost:8000/api/todo/deleteTodo',
+                    todo, 
+                    {
+                        headers: authHeader()
+                    }
+                )
+                return response.data
             }catch(error){
-                console.log('client:', error)
+                return Promise.reject(error)
             }
+    }
+)
+
+
+export const toggleCompleteTodo = createAsyncThunk(
+    'todo/completeTodo',
+    async ({checked, todoId}) => {
+       
+        try{
+            const response = await fetchApi.post(
+                'http://localhost:8000/api/todo/completeTodo',
+                {
+                    todoId: todoId,
+                    completed: checked
+                },
+                {   
+                    headers: authHeader(
+                        {
+                            'Content-Type': 'application/json'
+                        }
+                    ),
+                    
+                }
+            )
+            .then(res => res.data)
+            .then(data => {
+                
+                return {
+                    todoId: todoId,
+                    checked: checked,
+                    mess: data.message,
+                    status: data.status
+                }
+            })
+
+         return response
+        }catch(error){
+            return Promise.reject(error)
+        }
+    }
+)
+
+export const doneEditTodo = createAsyncThunk(
+    'todo/doneEditTodo',
+    async ({todoId, title}) => {
+
+        try{
+            const response = await fetchApi.post(
+                'http://localhost:8000/api/todo/editTodo',
+                {
+                    todoId: todoId,
+                    title: title
+                },
+                {
+                    headers: authHeader(
+                        {
+                            "Content-Type": 'application/json'
+                        }
+                    )
+                }
+            )
+            .then(res => res.data)
+            .then(data => {
+                return {
+                    message: data.message,
+                    status: data.status,
+                    todoId,
+                    title
+                }
+            })
+
+      
+            return response
+        }catch{
+
+        }
     }
 )
 const todosSlice = createSlice({
@@ -86,35 +165,58 @@ const todosSlice = createSlice({
     reducers: {
 
     },
-    extraReducers(builder){
-        builder.addCase(fetchTodos.pending, (state, action) => {
+    extraReducers:{
+        [fetchTodos.pending]: (state, action) => {
             state.status = 'pending'           
-        })
-        .addCase(fetchTodos.fulfilled, (state, action) => {
-            state.todos = action.payload.todos
-            state.total = action.payload.total
-            state.status = 'successded'
-            console.log(action.payload.message) 
-            
-         
-        })
-        .addCase(addNewTodo.fulfilled, (state, action) => {
-         
-            state.todos.unshift(action.payload.todo)
-          
-        })
-        .addCase(deleteTodo.fulfilled, (state, action) => {
+        },
+        [fetchTodos.fulfilled]: (state, action) => {
            
+            return {
+                ...state,
+                todos: action.payload.todos.todos,
+                total: action.payload.todos.total,
+                status: 'successded'
+            }
+        },
+        [addNewTodo.fulfilled]: (state, action) => {
+         
+         
+            state.todos.splice(4,1)
+            state.todos.unshift(action.payload.todo)
+    
+
+        },
+        [deleteTodo.fulfilled]: (state, action) => {
             const indexTodo = state.todos.findIndex(todo => todo.id === action.payload.todo.id)
             state.todos.splice(indexTodo, 1)
-            //state.todos.filter(todo => todo.id != action.payload.todo.id )
-            
-        })
+        },
+        [toggleCompleteTodo.fulfilled]: (state, action) => {
+       
+            return {
+                ...state, 
+                todos: [...state.todos.map(todo => todo.id === action.payload.todoId ? {...todo, completed: action.payload.checked} : todo)],
+            }
+        },
+        [doneEditTodo.fulfilled]: (state, action) => {
+       
+            return {
+                ...state, 
+                todos: [...state.todos.map(todo => todo.id === action.payload.todoId ? {...todo, title: action.payload.title} : todo)],
+            }
+        },
+        [filterTodos.fulfilled]: (state, action) => {
+        
+            return {
+                ...state, 
+                todos: action.payload.todos.todos,
+                total: action.payload.todos.total
+            }
+        }
     }
 
 })
-export const selectAllTodo = state => state.todos.todos
-export const statusRequest = state => state.todos.status
+export const selectAllTodo = state => state.todos.todoSlice.todos
+export const statusRequest = state => state.todos.todoSlice.status
 export const selectUserId = state => {return state.auth.user ? state.auth.user.id : ''}
-export const getCountTodo = state => state.todos.total
+export const getCountTodo = state => state.todos.todoSlice.total
 export default todosSlice.reducer

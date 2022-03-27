@@ -5,9 +5,11 @@ export async function client(endpoint, { body, ...customConfig } = {}) {
     const config = {
       method: body ? 'POST' : 'GET',
       ...customConfig,
+      mode: 'cors',
       headers: {
         ...headers,
         ...customConfig.headers,
+        'auth-token':  localStorage.getItem('token') ? localStorage.getItem('token') : '',
       },
     }
   

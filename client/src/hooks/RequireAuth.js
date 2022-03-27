@@ -24,12 +24,19 @@ const RedirectAuth = ({children}) => {
     return children
 }
 
-const AuthHeader = () => {
+const authHeader = ({...headers} = {}) => {
     const token = localStorage.getItem('token') ? localStorage.getItem('token') : '';
-    if(token){
-        return `auth-token: ${token}`
+    let headerConfig = {
+        ...headers
     }
-    return '';
+    if(token){
+        
+        headerConfig = {
+            'auth-token': token,
+            ...headers
+        }
+    }
+    return headerConfig
 }
     
-export {RequireAuth, RedirectAuth, AuthHeader}
+export {RequireAuth, RedirectAuth, authHeader}

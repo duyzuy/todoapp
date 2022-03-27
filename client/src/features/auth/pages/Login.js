@@ -24,12 +24,14 @@ const Login = () => {
             return true
         }else{
             setEmailStatus('Email is not valid')
+        
             return false
         }
     }
     const validatePassword = (password) => {
         if(password.length < 5) {
             setPasswordStatus('password length >5')
+        
             return false
         
         }else{
@@ -51,6 +53,7 @@ const Login = () => {
                     ).unwrap();
                     if(response.status === 400){
                         setMessage(response.message)
+                        alert(message)
                         return;
                     }
                     navigate('/todo')

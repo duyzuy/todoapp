@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-
 const initialState = {
     user: 'null',
     status: 'idle',
@@ -9,6 +8,8 @@ const initialState = {
     token: localStorage.getItem('token') ? localStorage.getItem('token') : '',
     error: ''
 }
+
+const authToken = localStorage.getItem('token') ? localStorage.getItem('token') : '';
 
 export const loginUser = createAsyncThunk(
     'auth/login',
@@ -22,7 +23,11 @@ export const loginUser = createAsyncThunk(
                 },
                 body: JSON.stringify(userData),
             });
+
+            
             return response.json()
+          
+
         }catch(err){
             console.log(err)
         }
@@ -55,18 +60,21 @@ export const registerUser = createAsyncThunk(
 export const accessToken = createAsyncThunk(
     'auth/accessToken',
     async () => {
+
+        
         try {
             const response = await fetch('http://localhost:8000/api/auth/access-token', 
             {   
                 method: "GET",
                 mode: 'cors',
                 headers: {
-                    'auth-token': localStorage.getItem('token') ? localStorage.getItem('token') : ''
+                    'auth-token': authToken
                 }
             })
-            return response.json()
+            // console.log('response from sv')
+            return response.json()           
         }catch(err) {
-            console.log(err)
+            return Promise.reject(err)
         }
     }
 )
@@ -108,7 +116,7 @@ const authSlice = createSlice({
         })
         .addCase(accessToken.pending, (state, action) => {
             state.status = 'pending';
-            state.user = localStorage.getItem('token') ? '123' : ''
+            
 
         })
         .addCase(accessToken.fulfilled, (state, action) => {
