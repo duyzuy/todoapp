@@ -2,6 +2,8 @@ const { dbModels } = require('../Models')
 const {validationAddTodo, validationEditTodo, validationTodoCompleted} = require('../Validations/TodoValidation')
 const db = dbModels()
 const jwt = require('jsonwebtoken')
+const { Op } = require("sequelize");
+
 class TodoController {
 
     show (req, res) {
@@ -36,6 +38,9 @@ class TodoController {
         }
     }
     completeTodo = async (req, res) => {
+
+        if(req.body === '') return;
+        
         const todoComplete = {
             id: req.body.todoId,
             completed: req.body.completed,
@@ -136,23 +141,49 @@ class TodoController {
     todoList = async (req, res) => {
     
         const token = req.header('auth-token');
-        let limit, page;
+        const verified = jwt.verify(token, process.env.SECRET_TOKEN)
+        const userId = verified.id 
+
+        let limit, page, priority, status;
         
         req.query.limit ? limit = Number(req.query.limit) : limit = 10
         req.query.page ? page = Number(req.query.page) : page = 1    
-          
+        req.query.priority ? priority = req.query.priority : priority = ''
+        req.query.status ? status = req.query.status : status = 'all'
+        
+        
+        priority = priority.split(',')
         const offset = Math.floor(page - 1) * limit
+        
+        let condition;
+        if(status === 'all'){
+            condition = {
+                UserId: userId,
+                priority: priority
+            }
+        }else if(status != 'all' && status === 'completed') {
+            condition = {
+                userId: userId,
+                completed: true,
+                priority: priority
+            }
+        }else if(status != 'all' && status === 'uncompleted') {
+            condition = {
+                userId: userId,
+                completed: false,
+                priority: priority
+            }
+        }
 
-       
+        
         try{
 
-            const verified = jwt.verify(token, process.env.SECRET_TOKEN)
-            const userId = verified.id 
+            
             const todos = await db.Todo.findAll({
                 limit: limit,
                 offset: offset, 
                 where: {
-                    UserId: userId,
+                    ...condition
                 },
                 order:[
                     [
@@ -160,9 +191,12 @@ class TodoController {
                     ]
                 ]
             })
-            const count = await db.Todo.count({  where: {
-                UserId: userId,
-            },});
+            const count = await db.Todo.count({  
+                where: {
+                    ...condition
+                },
+            });
+            
             setTimeout( () => {
                 return res.json({status: 200, message: "get todo success", todos: todos, total: count})
             }, 1000)
